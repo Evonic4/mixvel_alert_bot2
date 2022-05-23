@@ -1,0 +1,17 @@
+/j /job - Unresolved problems
+/ss - Server status
+/d /del - Delete event notification (/d id)
+After deletion, the notification about the specified event will not come in the future
+/cd - Clearing the list of deleted notifications
+/on /off - Alerting mode (off - quiet mode)
+/rps - avg num of req per sec by service for the period /rps:M (1h-def,24,36 h)
+/err - avg num of err for the period  /err:M (1h-def,24,36 h)
+Conventions:
+<b>&#10060;</b> Problem
+<b>&#9989</b> Resolved problem
+Severity:
+<b>&#9898;</b> info
+<b>&#x1F7E1;</b> warning
+<b>&#x1F7E0;</b> average
+<b>&#128308;</b> high
+<b>&#128996;</b> disaster
