@@ -209,7 +209,7 @@ echo $otv >> $cuf"send.txt"
 
 rm -f $cuf"out.txt"
 file=$cuf"out.txt"; 
-$ftb"cucu2.sh" &
+$ftb"cucu2.sh" "0" "0" &
 pauseloop;
 
 if [ -f $cuf"out.txt" ]; then
