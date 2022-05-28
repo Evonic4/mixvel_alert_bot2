@@ -2,7 +2,7 @@
 
 fhome=/usr/share/abot2/
 
-promapi=$(sed -n 21"p" $fhome"settings.conf" | tr -d '\r')
+promapi=$(sed -n 25"p" $fhome"settings.conf" | tr -d '\r')
 
 curl -s --location --request POST $promapi \
 --header 'Accept: application/json' \
