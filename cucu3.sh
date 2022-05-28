@@ -37,7 +37,7 @@ echo $PID > $fPID
 #echo "start"
 token=$(sed -n "1p" $ftb"settings.conf" | tr -d '\r')
 
-f_text=$(sed -n "2p" $ftb"send.txt" | tr -d '\r')
+f_text=$(sed -n "2p" $ftb"send3.txt" | tr -d '\r')
 proxy=$(sed -n 5"p" $ftb"settings.conf" | tr -d '\r')
 bicons=$(sed -n 19"p" $ftb"settings.conf" | tr -d '\r')
 sty=$(sed -n 20"p" $ftb"settings.conf" | tr -d '\r')

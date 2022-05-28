@@ -39,6 +39,9 @@ portapi=$(sed -n 17"p" $fhome"settings.conf" | tr -d '\r')
 ipapi=$(sed -n 18"p" $fhome"settings.conf" | tr -d '\r')
 bicons=$(sed -n 19"p" $ftb"settings.conf" | tr -d '\r')
 sty=$(sed -n 20"p" $ftb"settings.conf" | tr -d '\r')
+promapi=$(sed -n 21"p" $ftb"settings.conf" | tr -d '\r')
+label1=$(sed -n 22"p" $ftb"settings.conf" | tr -d '\r')
+groupp=$(sed -n 23"p" $ftb"settings.conf" | tr -d '\r')
 kkik=0
 }
 
@@ -110,7 +113,7 @@ if [ "$text" = "/ss" ] || [ "$text" = "/status" ]; then
 	regim=$(sed -n "1p" $fhome"amode.txt" | tr -d '\r')
 	[ "$regim" -eq "1" ] && echo "Alerting mode ON" > $fhome"ss.txt"
 	[ "$regim" -eq "0" ] && echo "Alerting mode OFF" > $fhome"ss.txt"
-	#nc -zv 127.0.0.1 9087 > $fhome"autohcheck.txt"
+
 	if [ $(nc -zv $ipapi $portapi 2>&1 | grep -cE "succeeded|open") -gt "0" ]; then 
 		echo "Bot AlertAPI UP" >> $fhome"ss.txt"
 	else
@@ -121,12 +124,19 @@ if [ "$text" = "/ss" ] || [ "$text" = "/status" ]; then
 	else
 		echo "Handler stoped" >> $fhome"ss.txt"
 	fi
-	if [ $(cat $fhome"delete.txt" | wc -l) -gt "0" ]; then 
-		echo "Fingerprints deleted:" >> $fhome"ss.txt"
+	fpc=$(cat $fhome"delete.txt" | wc -l)
+	if [ "$fpc" -gt "0" ]; then 
+		echo "Fingerprints deleted:"$fpc >> $fhome"ss.txt"
 		#cat $fhome"delete.txt" | tr '\015\012' ' ' >> $fhome"ss.txt"
-		cat $fhome"delete.txt" >> $fhome"ss.txt"
+		#cat $fhome"delete.txt" >> $fhome"ss.txt"
 	else
 		echo "No remote fingerprints" >> $fhome"ss.txt"
+	fi
+	autohcheck;
+	if [ "$autohcheck_rez" -eq "0" ]; then
+		echo "Prom API UP" >> $fhome"ss.txt"
+	else
+		echo "Prom API DOWN" >> $fhome"ss.txt"
 	fi
 	
 	otv=$fhome"ss.txt"
@@ -209,7 +219,7 @@ echo $otv >> $cuf"send.txt"
 
 rm -f $cuf"out.txt"
 file=$cuf"out.txt"; 
-$ftb"cucu2.sh" "0" "0" &
+$ftb"cucu2.sh" &
 pauseloop;
 
 if [ -f $cuf"out.txt" ]; then
@@ -379,6 +389,17 @@ echo $mi > $ftb"lastid.txt"
 
 }
 
+autohcheck ()
+{
+autohcheck_rez=$(curl -I -k -m 13 "$promapi" 2>&1 | grep -cE 'Failed')
+
+if [ "$autohcheck_rez" -eq "1" ]; then
+	logger "autohcheck prom api Failed"
+else
+	logger "autohcheck prom api OK"
+fi
+
+}
 
 
 
@@ -396,8 +417,13 @@ starten_furer;
 
 [ "$send_up_start" == "1" ] && ! [ -z "$chat_id1" ] && echo "Start abot2-"$bui > $fhome"start.txt" && otv=$fhome"start.txt" && send
 
-$fhome"abot1.sh" &
-$fhome"abot2.sh" &
+if [ -z "$promapi" ]; then
+	$fhome"abot1.sh" &
+	$fhome"abot2.sh" &
+else
+	$fhome"abot3.sh" &
+fi
+
 
 kkik=0
 
