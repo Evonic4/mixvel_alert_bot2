@@ -20,6 +20,7 @@ function Init()
 chat_id1=$(sed -n 1"p" $fhome"chats.txt" | sed 's/z/-/g' | tr -d '\r')
 
 regim=$(sed -n 3"p" $fhome"settings.conf" | tr -d '\r')
+proxy=$(sed -n 5"p" $ftb"settings.conf" | tr -d '\r')
 sec=$(sed -n 6"p" $fhome"settings.conf" | tr -d '\r')
 em=$(sed -n 8"p" $fhome"settings.conf" | tr -d '\r')
 zap=$(sed -n 10"p" $fhome"settings.conf" | tr -d '\r')
@@ -36,6 +37,10 @@ sty=$(sed -n 20"p" $ftb"settings.conf" | tr -d '\r')
 promapi=$(sed -n 21"p" $ftb"settings.conf" | tr -d '\r')
 label1=$(sed -n 22"p" $ftb"settings.conf" | tr -d '\r')
 groupp=$(sed -n 23"p" $ftb"settings.conf" | tr -d '\r')
+
+sm=$(sed -n 24"p" $ftb"settings.conf" | tr -d '\r')
+mdt_start=$(sed -n 26"p" $ftb"settings.conf" | sed 's/\://g' | tr -d '\r')
+mdt_end=$(sed -n 27"p" $ftb"settings.conf" | sed 's/\://g' | tr -d '\r')
 
 kkik=0
 bic="0"
@@ -63,7 +68,11 @@ function alert_bot()
 
 autohcheck;
 if [ "$autohcheck_rez" -eq "0" ]; then
-curl -k -s -m 13 "$promapi" | jq '.' > $fhome"a3.txt"
+	if [ -z "$proxy" ]; then
+		curl -k -s -m 13 "$promapi" | jq '.' > $fhome"a3.txt"
+	else
+		curl -k -s -m 13 --proxy $proxy "$promapi" | jq '.' > $fhome"a3.txt"
+	fi
 [ "$lev_log" == "1" ] && cat $fhome"a3.txt"
 if [ $(grep -c '\"status\"\: \"success\"' $fhome"a3.txt" ) -eq "1" ]; then
 logger "status success"
@@ -97,10 +106,9 @@ function redka()
 [ "$lev_log" == "1" ] && logger "start redka"
 logger "redka num_alerts="$num_alerts
 
+for (( i1=0;i1<$num_alerts;i1++)); do
 rm -f $f_send
 
-for (( i1=0;i1<=$num_alerts;i1++)); do
-#for (( i1=$((num_alerts-1));i1>=0;i1--)); do
 bic="0"
 styc="0"
 code2=""
@@ -168,7 +176,16 @@ if ! [ "$(grep $finger $fhome"alerts.txt")" ]; then
 		[ "$bicons" == "1" ] && [ "$sty" == "2" ] && echo $newid" "$desc$severity1$desc3 >> $f_send
 		
 		[ "$em" == "1" ] && echo "[ALERT] Problem "$newid$severity1 > $fhome"mail.txt" && echo "[ALERT] "$newid" "$desc$desc3 >> $fhome"mail.txt" && $ftb"sendmail.sh"
+		
+		#silent_mode
+		silent_mode;
+		if [ "$silent_mode" == "on" ]; then
+		[ "$severity" == "high" ] && to_send;
+		[ "$severity" == "disaster" ] && to_send;
+		else
 		to_send;
+		fi
+		
 	else
 	logger "finger "$finger" already removed earlier"
 	fi
@@ -207,10 +224,27 @@ for (( i=1;i<=$str_col;i++)); do
 		local date2=`date '+ %Y-%m-%d %H:%M:%S'`
 		desc3=", timestamp: "$date2
 		[ "$bicons" == "0" ] && echo "[OK] "$desc4$desc3 >> $f_send && idprob=$(sed -n "1p" $f_send | tr -d '\r' | awk '{print $2}')
-		[ "$bicons" != "0" ] && echo $desc4$desc3 >> $f_send && idprob=$(sed -n "1p" $f_send | tr -d '\r' | awk -F"</b>" '{print $1}')
+		[ "$bicons" != "0" ] && echo $desc4$desc3 >> $f_send && idprob=$(sed -n "1p" $f_send | tr -d '\r' | awk -F"</b>" '{print $2}' | awk '{print $1}')
 		logger "resolved idprob="$idprob" finger="$test
+		
+		desc4=$(sed -n $num2"p" $fhome"alerts2.txt" | tr -d '\r' | awk -F"</b>" '{print $2}')
 		[ "$em" == "1" ] && echo "[OK] Resolved "$idprob > $fhome"mail.txt" && echo "[OK] "$desc4$desc3 >> $fhome"mail.txt" && $ftb"sendmail.sh"
-		to_send;
+		
+		
+		#silent_mode
+		silent_mode;
+		if [ "$silent_mode" == "on" ]; then
+		smt1=""; smt2=""; smt3=""; smt4=""
+		smt1=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128996;" )
+		smt2=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128308;" )
+		smt3=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: high" )
+		smt4=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: disaster" )
+		logger "resolved smt1="$smt1", smt2="$smt2", smt3="$smt3", smt4="$smt4
+		! [ -z "$smt1" ] || ! [ -z "$smt2" ] || ! [ -z "$smt3" ] || ! [ -z "$smt4" ] && to_send;
+		else
+			to_send;
+		fi
+		
 		#resolved---
 		
 		str_col1=$(grep -cv "^---" $fhome"alerts.txt")
@@ -230,6 +264,24 @@ for (( i=1;i<=$str_col;i++)); do
 
 done
 
+
+}
+
+
+silent_mode ()
+{
+silent_mode="off"
+[ "$lev_log" == "1" ] && logger "--------------silent_mode------------------"
+if [ "$sm" == "1" ]; then
+		mdt1=$(date '+%H:%M:%S' | sed 's/\://g' | tr -d '\r')
+		[ "$lev_log" == "1" ] && logger "silent_mode mdt1="$mdt1
+		[ "$lev_log" == "1" ] && logger "silent_mode mdt_start="$mdt_start
+		[ "$lev_log" == "1" ] && logger "silent_mode mdt_end="$mdt_end
+		if [ "$mdt1" \> "$mdt_start" ] && [ "$mdt1" \< "$mdt_end" ]; then
+			silent_mode="on"
+		fi
+fi
+logger "silent_mode="$silent_mode
 
 }
 
@@ -362,7 +414,7 @@ while true
 do
 sleep $ssec
 alert_bot;
-to_send;
+#to_send;
 kkik=$(($kkik+1))
 if [ "$kkik" -ge "$progons" ]; then
 	autohcheck 
