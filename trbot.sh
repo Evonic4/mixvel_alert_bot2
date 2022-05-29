@@ -435,10 +435,7 @@ sleep $sec4
 ffufuf1=0
 
 
-if ! [ -z "$chat_id1" ]; then
-	input;
-	[ "$opov" -eq "0" ] && parce;
-fi
+[ "$opov" == "0" ] && input && parce;
 
 kkik=$(($kkik+1))
 [ "$kkik" -ge "$progons" ] && Init2
