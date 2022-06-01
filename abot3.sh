@@ -208,6 +208,7 @@ cp -f $fhome"alerts.txt" $fhome"alerts_old.txt"
 str_col=$(grep -cv "^---" $fhome"alerts_old.txt")
 logger "comm_vessels alerts_old str_col="$str_col
 for (( i=1;i<=$str_col;i++)); do
+	rm -f $f_send
 	test=$(sed -n $i"p" $fhome"alerts_old.txt" | awk '{print $2}' | tr -d '\r')
 	num=$(grep -n "$test" $fhome"newalerts.txt" | awk -F":" '{print $1}')
 	if [ -z "$num" ]; then
