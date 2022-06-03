@@ -17,12 +17,12 @@ echo "chat_id="$chat_id
 echo $text
 
 if [ -z "$proxy" ]; then
-[ "$Z1" == "0" ] && [ "$Z2" == "0" ] && curl -k -s -m 13 -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text="$text > $ftb"out0.txt"
-[ "$Z1" != "0" ] || [ "$Z2" != "0" ] && curl -k -s -m 13 -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text=<b>$code1</b>"$text > $ftb"out0.txt"
+[ "$Z1" == "0" ] && [ "$Z2" == "0" ] && curl -k -m 13 -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text="$text 2>&1 > $ftb"out0.txt"
+[ "$Z1" != "0" ] || [ "$Z2" != "0" ] && curl -k -m 13 -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text=<b>$code1</b>"$text 2>&1 > $ftb"out0.txt"
 
 else
-[ "$Z1" == "0" ] && [ "$Z2" == "0" ] && curl -k -s -m 13 --proxy $proxy -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text="$text > $ftb"out0.txt"
-[ "$Z1" != "0" ] || [ "$Z2" != "0" ] && curl -k -s -m 13 --proxy $proxy -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text=<b>$code1</b>"$text > $ftb"out0.txt"
+[ "$Z1" == "0" ] && [ "$Z2" == "0" ] && curl -k -m 13 --proxy $proxy -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text="$text 2>&1 > $ftb"out0.txt"
+[ "$Z1" != "0" ] || [ "$Z2" != "0" ] && curl -k -m 13 --proxy $proxy -L -X POST https://api.telegram.org/bot$token/sendMessage -d chat_id="$chat_id" -d 'parse_mode=HTML' --data-urlencode "text=<b>$code1</b>"$text 2>&1 > $ftb"out0.txt"
 
 fi
 

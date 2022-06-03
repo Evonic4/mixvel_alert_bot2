@@ -42,8 +42,6 @@ sty=$(sed -n 20"p" $ftb"settings.conf" | tr -d '\r')
 promapi=$(sed -n 21"p" $ftb"settings.conf" | tr -d '\r')
 label1=$(sed -n 22"p" $ftb"settings.conf" | tr -d '\r')
 groupp=$(sed -n 23"p" $ftb"settings.conf" | tr -d '\r')
-
-
 kkik=0
 }
 
@@ -437,6 +435,7 @@ ffufuf1=0
 
 [ "$opov" == "0" ] && input;
 [ "$opov" == "0" ] && parce;
+
 
 kkik=$(($kkik+1))
 [ "$kkik" -ge "$progons" ] && Init2

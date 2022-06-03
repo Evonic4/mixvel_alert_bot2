@@ -113,12 +113,13 @@ bic="0"
 styc="0"
 code2=""
 
-alertname=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].labels.severity' | sed 's/"/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
+alertname=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].labels.alertname' | sed 's/"/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
 groupp1=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].labels.'${label1}'' | sed 's/"/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
 inst=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].labels.instance' | sed 's/"/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
 jober=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].labels.job' | sed 's/"/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
 severity=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].labels.severity' | sed 's/"/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
 desc=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].annotations.description' | sed 's/"/ /g' | sed 's/UTC/ /g' | sed 's/+0000/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//'`
+unic=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].annotations.unicum'`
 
 
 [ "$lev_log" == "1" ] && logger "redka i1="$i1
@@ -128,10 +129,11 @@ desc=`cat $fhome"a3.txt" | jq '.data.alerts['${i1}'].annotations.description' | 
 [ "$lev_log" == "1" ] && logger "redka inst="$inst
 [ "$lev_log" == "1" ] && logger "redka jober="$jober
 [ "$lev_log" == "1" ] && logger "redka desc="$desc
+[ "$lev_log" == "1" ] && logger "redka unic="$unic
 
 if [ "$severity" != "keepalive" -a "$groupp" == "$groupp1" ]; then
 
-finger=$(echo -n $alertname$inst$jober$severity | md5sum | awk '{print $1}')
+finger=$(echo -n $alertname$inst$jober$severity$unic | md5sum | awk '{print $1}')
 echo $finger >> $fhome"newalerts.txt"
 
 [ "$severity" == "info" ] && styc="1" && code2="<b>&#9898;</b>"
@@ -141,7 +143,8 @@ echo $finger >> $fhome"newalerts.txt"
 [ "$severity" == "disaster" ] && styc="5" && code2="<b>&#128996;</b>"
 
 severity1=""
-[ "$sty" == "2" ] && severity1=", severity: "$severity
+severity2=", severity: "$severity
+[ "$sty" == "2" ] && severity1=$severity2
 
 
 desc3=""
@@ -175,7 +178,7 @@ if ! [ "$(grep $finger $fhome"alerts.txt")" ]; then
 		[ "$bicons" == "1" ] && [ "$sty" == "1" ] && echo $code2$newid" "$desc$desc3 >> $f_send
 		[ "$bicons" == "1" ] && [ "$sty" == "2" ] && echo $newid" "$desc$severity1$desc3 >> $f_send
 		
-		[ "$em" == "1" ] && echo "[ALERT] Problem "$newid$severity1 > $fhome"mail.txt" && echo "[ALERT] "$newid" "$desc$desc3 >> $fhome"mail.txt" && $ftb"sendmail.sh"
+		[ "$em" == "1" ] && echo "[ALERT] Problem "$newid$severity2 > $fhome"mail.txt" && echo "[ALERT] "$newid" "$desc$desc3 >> $fhome"mail.txt" && $ftb"sendmail.sh"
 		
 		#silent_mode
 		silent_mode;
@@ -200,6 +203,33 @@ done
 
 }
 
+resolv_sever2()
+{
+smt1=""; smt2=""; smt3=""; smt4=""
+smt1=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128996;" )
+! [ -z "$smt1" ] && severity2=", severity: disaster"
+smt2=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128308;" )
+! [ -z "$smt2" ] && severity2=", severity: high"
+smt3=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: high" )
+! [ -z "$smt3" ] && severity2=", severity: high"
+smt4=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: disaster" )
+! [ -z "$smt4" ] && severity2=", severity: disaster"
+
+smt0=""; smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#9898;" )
+! [ -z "$smt0" ] && severity2=", severity: info"
+smt0=""; smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#x1F7E1;" )
+! [ -z "$smt0" ] && severity2=", severity: warning"
+smt0=""; smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#x1F7E0;" )
+! [ -z "$smt0" ] && severity2=", severity: average"
+smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: high" )
+
+smt0=""; smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: info" )
+! [ -z "$smt0" ] && severity2=", severity: info"
+smt0=""; smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: warning" )
+! [ -z "$smt0" ] && severity2=", severity: warning"
+smt0=""; smt0=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: average" )
+! [ -z "$smt0" ] && severity2=", severity: average"
+}
 
 comm_vessels()
 {
@@ -228,18 +258,19 @@ for (( i=1;i<=$str_col;i++)); do
 		[ "$bicons" != "0" ] && echo $desc4$desc3 >> $f_send && idprob=$(sed -n "1p" $f_send | tr -d '\r' | awk -F"</b>" '{print $2}' | awk '{print $1}')
 		logger "resolved idprob="$idprob" finger="$test
 		
+		resolv_sever2;
 		desc4=$(sed -n $num2"p" $fhome"alerts2.txt" | tr -d '\r' | awk -F"</b>" '{print $2}')
-		[ "$em" == "1" ] && echo "[OK] Resolved "$idprob > $fhome"mail.txt" && echo "[OK] "$desc4$desc3 >> $fhome"mail.txt" && $ftb"sendmail.sh"
+		[ "$em" == "1" ] && echo "[OK] Resolved "$idprob$severity2 > $fhome"mail.txt" && echo "[OK] "$desc4$desc3 >> $fhome"mail.txt" && $ftb"sendmail.sh"
 		
 		
 		#silent_mode
 		silent_mode;
 		if [ "$silent_mode" == "on" ]; then
-		smt1=""; smt2=""; smt3=""; smt4=""
-		smt1=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128996;" )
-		smt2=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128308;" )
-		smt3=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: high" )
-		smt4=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: disaster" )
+		#smt1=""; smt2=""; smt3=""; smt4=""
+		#smt1=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128996;" )
+		#smt2=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "&#128308;" )
+		#smt3=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: high" )
+		#smt4=$(sed -n $num2'p' $fhome"alerts2.txt" | grep "severity: disaster" )
 		logger "resolved smt1="$smt1", smt2="$smt2", smt3="$smt3", smt4="$smt4
 		! [ -z "$smt1" ] || ! [ -z "$smt2" ] || ! [ -z "$smt3" ] || ! [ -z "$smt4" ] && to_send;
 		else
