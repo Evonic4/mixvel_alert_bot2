@@ -78,7 +78,7 @@ if [ $(grep -c '\"status\"\: \"success\"' $fhome"a3.txt" ) -eq "1" ]; then
 logger "status success"
 str_col=$(grep -cv "^---" $fhome"a3.txt")
 logger "bot api str_col="$str_col
-if [ "$str_col" -gt "6" ]; then
+if [ "$str_col" -gt "5" ]; then
 num_alerts=$(grep -c 'alertname' $fhome"a3.txt" )
 echo "" > $fhome"newalerts.txt"
 redka;
