@@ -297,7 +297,7 @@ for (( i=1;i<=$str_col;i++)); do
 
 done
 
-
+echo "" > $fhome"newalerts.txt"
 }
 
 
